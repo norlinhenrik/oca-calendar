@@ -10,7 +10,7 @@ class ResourceCalendarAttendance(models.Model):
 
     _inherit = 'resource.calendar.attendance'
 
-    @api.multi
+    #@api.multi
     @api.constrains('date_from', 'date_to')
     def _check_date_from_date_to(self):
         for record in self:
@@ -24,7 +24,7 @@ class ResourceCalendarAttendance(models.Model):
                     'than Starting Date.',
                 ))
 
-    @api.multi
+    #@api.multi
     @api.constrains('hour_from', 'hour_to')
     def _check_hour_from_hour_to(self):
         for record in self:

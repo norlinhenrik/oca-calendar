@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from datetime import datetime, time, timedelta
+import pytz
 from odoo import api, models
 
 
@@ -96,6 +97,10 @@ class ResourceCalendar(models.Model):
         end_datetime = datetime.combine(
             end_date, time(23, 59, 59),
         )
+        # datetime_start = pytz.timezone(resource.tz).localize(datetime.combine(day, time(00, 00, 00)))
+        # datetime_end = pytz.timezone(resource.tz).localize(datetime.combine(day, time(23, 59, 59)))
+        #start_datetime = start_date
+        #end_datetime = end_date
 
         intervals = self._clean_datetime_intervals(intervals)
 

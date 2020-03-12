@@ -2,9 +2,10 @@
 # Copyright 2018 Savoir-faire Linux
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from os import linesep
 from datetime import datetime, time, timedelta
 from dateutil.rrule import rrule, DAILY
+from os import linesep
+import pytz
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
@@ -14,73 +15,32 @@ class CalendarEvent(models.Model):
 
     _inherit = 'calendar.event'
 
+    # https://github.com/odoo/odoo/blob/13.0/addons/calendar/models/calendar.py#L781
+    # With empty timezone, 'allday' events have ambigous start/stop time, assuming UTC.
+    event_tz = fields.Selection('_event_tz_get', string='Timezone', default=lambda self: self.env.context.get('tz') or self.user_id.tz)
+
+    def _event_tz_get(self):
+        # put POSIX 'Etc/*' entries at the end to avoid confusing users - see bug 1086728
+        return [(tz, tz) for tz in sorted(pytz.all_timezones, key=lambda tz: tz if not tz.startswith('Etc/') else '_')]
+
+    # timezone = pytz.timezone(self.event_tz) if self.event_tz else pytz.timezone(self._context.get('tz') or 'UTC')
+    # timezone = self._context.get('tz') or self.env.user.partner_id.tz or 'UTC'
+    # self_tz = self.with_context(tz=timezone)
+
     resource_ids = fields.Many2many(
         string='Resources',
         comodel_name='resource.resource',
     )
 
-    @api.model
-    def _format_datetime_intervals_to_str(self, intervals):
-        """ Converts intervals to string values.
-
-        Example:
-
-            .. code-block python
-
-            self._format_datetime_intervals_to_str(
-                intervals=[
-                    (
-                        datetime(2017, 6, 28, 17, 0, 0),
-                        datetime(2017, 6, 29, 8, 0, 0),
-                    ),
-                    (
-                        datetime(2017, 6, 29, 12, 0, 0),
-                        datetime(2017, 6, 29, 13, 0, 0),
-                    ),
-                ],
-            )
-
-            The above example will output the following string,
-            depending on date and time format, as well as timezone.
-
-            \n06/28/2017 at 17:00:00 To\n
-            06/29/2017 at 08:00:00 (UTC)\n
-
-            \n06/29/2017 at 12:00:00 To\n
-            06/29/2017 at 13:00:00 (UTC)\n
-
-        Returns:
-
-            (str): string formatted for front-end
-            display purposes, taking into account language, timezone, as
-            well as date and time formats.
-
-        """
-        datetimes = []
-        for interval in intervals:
-            if not isinstance(interval[0], str):
-                interval = (
-                    fields.Datetime.to_string(interval[0]),
-                    fields.Datetime.to_string(interval[1]),
-                )
-            args = {
-                'start': interval[0],
-                'stop': interval[1],
-                'zallday': False,
-                'zduration': 24,
-            }
-            datetimes.append(self._get_display_time(**args))
-        return (2 * linesep).join(datetimes)
-
-    @api.multi
+    #@api.multi
     def _event_in_past(self):
         self.ensure_one()
-        stop_datetime = fields.Datetime.from_string(self.stop)
+        stop_datetime = self.stop
         now_datetime = datetime.now()
         return stop_datetime < now_datetime
 
-    @api.multi
-    @api.constrains('resource_ids', 'start', 'stop')
+    #@api.multi
+    @api.constrains('resource_ids', 'start', 'stop') # recurring changes
     def _check_resource_ids_double_book(self):
         for record in self:
             resources = record.resource_ids.filtered(
@@ -104,13 +64,13 @@ class CalendarEvent(models.Model):
                         % resource.name,
                     )
 
-    @api.multi
+    #@api.multi
     @api.constrains('resource_ids', 'categ_ids')
     def _check_resource_ids_categ_ids(self):
 
         for record in self.filtered(lambda x: not x._event_in_past()):
 
-            if not record.categ_ids or record._event_in_past():
+            if not record.categ_ids:
                 continue
 
             for resource in record.resource_ids:
@@ -131,38 +91,7 @@ class CalendarEvent(models.Model):
                         )
                     )
 
-    @api.multi
-    @api.constrains('resource_ids', 'start', 'stop')
-    def _check_resource_ids_leaves(self):
-
-        for record in self.filtered(lambda x: not x._event_in_past()):
-
-            for resource in record.resource_ids:
-                if not resource.calendar_id.leave_ids:
-                    continue
-
-                conflict_leaves = resource.calendar_id.leave_ids.filtered(
-                    lambda s: s.date_from < record.stop and
-                    s.date_to > record.start
-                )
-
-                if not conflict_leaves:
-                    continue
-
-                datetimes = [(c.date_from, c.date_to) for c in conflict_leaves]
-                raise ValidationError(
-                    _(
-                        "The resource, '%s', is on leave during "
-                        "the following times which are conflicting with "
-                        "this event.\n%s",
-                    )
-                    % (
-                        resource.name,
-                        self._format_datetime_intervals_to_str(datetimes),
-                    )
-                )
-
-    @api.multi
+    #@api.multi
     def _get_event_date_list(self):
         """ Builds a list of datetimes of the days of the event
 
@@ -171,8 +100,8 @@ class CalendarEvent(models.Model):
 
         """
         self.ensure_one()
-        start_date = fields.Date.from_string(self.start)
-        stop_datetime = fields.Datetime.from_string(self.stop)
+        start_date = self.start.date()
+        stop_datetime = self.stop
 
         if stop_datetime.time() == time(0, 0):
             stop_datetime -= timedelta(days=1)
@@ -181,15 +110,42 @@ class CalendarEvent(models.Model):
             rrule(DAILY, dtstart=start_date, until=stop_datetime.date())
         )
 
-    @api.multi
-    @api.constrains('resource_ids', 'start', 'stop')
+    def _get_event_datetime_list(self):
+        self.ensure_one()
+        event_tz = pytz.timezone(self.event_tz) if self.event_tz else pytz.timezone(self._context.get('tz') or 'UTC')
+        #timezone('US/Eastern').localize(datetime)
+        #.replace(tzinfo=None) # shortcut
+        #.astimezone(tz)
+        # (1) local tz (2) remove time (3) as UTC
+        if self.recurrency:
+            dt_list = self._get_recurrent_dates_by_event()
+            if self.allday:
+                dt_list2 = [(
+                    start.date(),
+                    stop.date()
+                ) for start, stop in dt_list]
+        
+        # allday?
+
+    #@api.multi
+    @api.constrains('resource_ids', 'start', 'stop') # recurring changes
     def _check__a_resource_ids_working_times(self):
+        my_interval = self.get_interval('day', tz=None)
+        my_recurrent_ids = self.get_recurrent_ids([], order=None)
+        
+        # works only if recurrent == True
+        if self.recurrency == True:
+            my_recurrent_dates = self._get_recurrent_dates_by_event() # list of tuples [(start,stop)]
+
+
+
         ResourceCalendar = self.env['resource.calendar']
         for record in self.filtered(lambda x: not x._event_in_past()):
 
-            event_start = fields.Datetime.from_string(record.start)
-            event_stop = fields.Datetime.from_string(record.stop)
+            event_start = record.start.replace(tzinfo=pytz.utc)
+            event_stop = record.stop.replace(tzinfo=pytz.utc)
             event_days = record._get_event_date_list()
+            event_tz = pytz.timezone(record.event_tz) if record.event_tz else pytz.timezone(record._context.get('tz') or 'UTC')
 
             for resource in record.resource_ids.filtered(
                     'calendar_id'):
@@ -198,16 +154,14 @@ class CalendarEvent(models.Model):
                 conflict_intervals = []
 
                 for day in event_days:
-
-                    datetime_start = datetime.combine(day, time(00, 00, 00))
-                    datetime_end = datetime.combine(day, time(23, 59, 59))
+                    
+                    datetime_start = event_tz.localize(datetime.combine(day, time(00, 00, 00)))
+                    datetime_end = event_tz.localize(datetime.combine(day, time(23, 59, 59)))
 
                     intervals = \
-                        resource.calendar_id._get_day_work_intervals(
-                            day_date=day,
-                            start_time=time(00, 00, 00),
-                            end_time=time(23, 59, 59),
-                            resource_id=resource.id,
+                        resource.calendar_id._work_intervals(
+                            datetime_start,
+                            datetime_end,
                         )
 
                     if not intervals:
@@ -240,8 +194,9 @@ class CalendarEvent(models.Model):
                     % (
                         resource.name,
                         2 * linesep,
-                        self._format_datetime_intervals_to_str(
-                            conflict_intervals,
-                        ),
+                        #self._format_datetime_intervals_to_str(
+                        #    conflict_intervals,
+                        #),
+                        conflict_intervals,
                     )
                 )

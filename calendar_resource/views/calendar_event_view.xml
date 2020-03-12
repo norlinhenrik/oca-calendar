@@ -19,7 +19,7 @@
         </field>
     </record>
 
-    <record id="view_calendar_event_form_popup" model="ir.ui.view">
+    <!-- <record id="view_calendar_event_form_popup" model="ir.ui.view">
         <field name="name">view.calendar.event.form.popup</field>
         <field name="model">calendar.event</field>
         <field name="inherit_id" ref="calendar.view_calendar_event_form_popup" />
@@ -28,7 +28,7 @@
                 <field name="resource_ids" widget="many2many_tags"/>
             </field>
         </field>
-    </record>
+    </record> -->
 
     <record id="view_calendar_event_calendar" model="ir.ui.view">
         <field name="name">view.calendar.event.calendar</field>

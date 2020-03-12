@@ -5,7 +5,7 @@
 {
     "name": "Calendar Resources",
     "summary": "New features to facilitate resource management with meetings.",
-    "version": "11.0.1.0.0",
+    "version": "12.0.1.0.0",
     "category": "Calendar",
     "website": "https://github.com/OCA/calendar",
     "author": "Savoir-faire Linux, LasLabs, Odoo Community Association (OCA)",

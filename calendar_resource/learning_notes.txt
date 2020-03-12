@@ -1,0 +1,136 @@
+copy from calendar_event.py
+    @api.multi
+    @api.constrains('resource_ids', 'start', 'stop')
+    def _check__a_resource_ids_working_times(self):
+
+                    datetime_start = pytz.timezone(resource.tz).localize(datetime.combine(day, time(00, 00, 00)))
+                    datetime_end = pytz.timezone(resource.tz).localize(datetime.combine(day, time(23, 59, 59)))
+
+                    intervals = \
+                        resource.calendar_id._work_intervals(
+                            datetime_start,
+                            datetime_end,
+                        )
+
+
+copy from resource_calendar.py
+
+        unavailable_intervals = self._get_unavailable_intervals(
+            intervals=intervals,
+            start_date=start_datetime, #.date(),
+            end_date=end_datetime, #.date(),
+        )
+
+Datetimes are stored in UTC value.
+Dates need a timezone, so I added event_tz to calendar.event.
+resource.py _work_intervals requires timezone on start_dt, end_dt.
+# On create/write, check constrains
+date vs datetime
+recurring vs one-time
+timezone
+
+double-booked: booked this time? (also for allday)
+
+resource available:
+allday: accept if there is one work time this day.
+else: available this time?
+
+tz: calendar.event, user/contact, employee/resource/resource.calendar
+function: return event_tz if set else context or UTC.
+allday: use start_date & stop_date with tz
+else:   use start_datetime & stop_datetime
+isinstance(myvar, datetime) # True or False
+
+CALENDAR.EVENT
+    # NEW field event_tz
+    def _event_tz_get(self)
+
+    # DEL
+    # test_calendar_event.py
+    # calendar_event.py _check_resource_ids_leaves
+    # calendar_event.py _check__a_resource_ids_working_times
+    #@api.model
+    #def _format_datetime_intervals_to_str(self, intervals):
+
+
+    @api.multi
+    def _event_in_past(self):
+
+    # TODO: allday, recurring
+    @api.multi
+    @api.constrains('resource_ids', 'start', 'stop')
+    def _check_resource_ids_double_book(self):
+
+
+    @api.multi
+    @api.constrains('resource_ids', 'categ_ids')
+    def _check_resource_ids_categ_ids(self):
+
+    # DEL (_work_intervals = _attendance_intervals - _leave_intervals)
+    #@api.multi
+    #@api.constrains('resource_ids', 'start', 'stop')
+    #def _check_resource_ids_leaves(self):
+
+    # calendar_event.py _check__a_resource_ids_working_times
+    @api.multi
+    def _get_event_date_list(self):
+
+    # TODO: timezone
+    @api.multi
+    @api.constrains('resource_ids', 'start', 'stop')
+    def _check__a_resource_ids_working_times(self):
+
+RESOURCE.CALENDAR
+    # test_resource_calendar.py
+    # calendar_event.py _check__a_resource_ids_working_times
+    @api.model
+    def _get_conflicting_unavailable_intervals(self, intervals, start_datetime, end_datetime)
+
+    # test_resource_calendar.py
+    # resource_calendar.py _get_conflicting_unavailable_intervals
+    @api.model
+    def _get_unavailable_intervals(self, intervals, start_date, end_date)
+
+    # test_resource_calendar.py
+    # resource_calendar.py _get_unavailable_intervals
+    # resource_calendar.py _clean_datetime_intervals (recursive)
+    @api.model
+    def _clean_datetime_intervals(self, intervals)
+
+    # resource_calendar.py _get_unavailable_intervals
+    # resource_calendar.py _clean_datetime_intervals
+    @api.model
+    def _check_round_up_times_to_next_day(self, intervals)
+
+
+13.0
+calendar.event
+    def get_interval(self, interval, tz=None):
+        """ Format and localize some dates to be used in email templates
+            :param string interval: Among 'day', 'month', 'dayname' and 'time' indicating the desired formatting
+            :param string tz: Timezone indicator (optional)
+            :return unicode: Formatted date or time (as unicode string, to prevent jinja2 crash)
+        """
+
+    def get_recurrent_ids(self, domain, order=None):
+        """ Gives virtual event ids for recurring events. This method gives ids of dates
+            that comes between start date and end date of calendar views
+            :param order:   The fields (comma separated, format "FIELD {DESC|ASC}") on which
+                            the events should be sorted
+        """
+
+resource.calendar
+    result = [(start, stop, records)]
+    return Intervals(result)
+    work = Intervals(attendance) - Intervals(leave)
+    my_recurrent_datetimes = self._get_recurrent_dates_by_event() # list of tuples [(start,stop)] # if recurrent == True
+
+    def _event_intervals(self)
+    def _
+https://github.com/odoo/odoo/blob/13.0/addons/calendar/models/calendar.py#L899
+# recurring events use _inverse_dates with hard-coded start 8:00 stop 18:00
+
+'recurrent_id_date' is key to change one event in a recurring series.
+
+1994-11-05T08:15:30-05:00 (Eastern time)
+1994-11-05T13:15:30Z (Z = UTC)
