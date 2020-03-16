@@ -40,7 +40,7 @@ class CalendarEvent(models.Model):
         return stop_datetime < now_datetime
 
     #@api.multi
-    @api.constrains('resource_ids', 'start', 'stop') # recurring changes
+    #@api.constrains('resource_ids', 'start', 'stop') # recurring changes
     def _check_resource_ids_double_book(self):
         for record in self:
             resources = record.resource_ids.filtered(
@@ -65,7 +65,7 @@ class CalendarEvent(models.Model):
                     )
 
     #@api.multi
-    @api.constrains('resource_ids', 'categ_ids')
+    #@api.constrains('resource_ids', 'categ_ids')
     def _check_resource_ids_categ_ids(self):
 
         for record in self.filtered(lambda x: not x._event_in_past()):
@@ -128,7 +128,7 @@ class CalendarEvent(models.Model):
         # allday?
 
     #@api.multi
-    @api.constrains('resource_ids', 'start', 'stop') # recurring changes
+    #@api.constrains('resource_ids', 'start', 'stop') # recurring changes
     def _check__a_resource_ids_working_times(self):
         my_interval = self.get_interval('day', tz=None)
         my_recurrent_ids = self.get_recurrent_ids([], order=None)
