@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2024-10-09 16:06+0000\n"
-"Last-Translator: mymage <stefano.consolaro@mymage.it>\n"
+"PO-Revision-Date: 2024-11-14 13:06+0000\n"
+"Last-Translator: Sergio Zanchetta <primes2h@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -68,7 +68,7 @@ msgstr "Nome visualizzato"
 #. module: calendar_monthly_multi
 #: model:ir.model,name:calendar_monthly_multi.model_calendar_recurrence
 msgid "Event Recurrence Rule"
-msgstr "Regola ricorrenza evento"
+msgstr "Regola per ricorrenza evento"
 
 #. module: calendar_monthly_multi
 #: model:ir.model.fields,field_description:calendar_monthly_multi.field_calendar_recurrence_day__id
@@ -122,7 +122,7 @@ msgstr "Giorno ricorrenza"
 #. module: calendar_monthly_multi
 #: model:ir.model,name:calendar_monthly_multi.model_calendar_recurrence_weekday
 msgid "Recurrence Weekday"
-msgstr "Giorno settimana della ricorrenza"
+msgstr "Giorno settimanale ricorrenza"
 
 #. module: calendar_monthly_multi
 #: model:ir.model.fields,field_description:calendar_monthly_multi.field_calendar_recurrence_weekday__sequence
@@ -137,7 +137,7 @@ msgstr "Sequenza"
 #: model:ir.model.fields.selection,name:calendar_monthly_multi.selection__calendar_event__weekday__weekday
 #: model:ir.model.fields.selection,name:calendar_monthly_multi.selection__calendar_recurrence__weekday__weekday
 msgid "Weekday"
-msgstr "Giorno della settimana"
+msgstr "Giorno settimanale"
 
 #. module: calendar_monthly_multi
 #: model:ir.model.fields,field_description:calendar_monthly_multi.field_calendar_recurrence_weekday__weekend_day
