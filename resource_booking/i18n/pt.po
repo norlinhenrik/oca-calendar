@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2024-12-05 21:36+0000\n"
+"PO-Revision-Date: 2024-12-08 16:03+0000\n"
 "Last-Translator: Peter Romão <peterromao@yahoo.co.uk>\n"
 "Language-Team: none\n"
 "Language: pt\n"
@@ -984,7 +984,7 @@ msgstr "Tipo da Reserva de Recurso"
 #. module: resource_booking
 #: model:ir.ui.menu,name:resource_booking.resource_booking_main_menu
 msgid "Resource Bookings"
-msgstr "Reservas de Recurso"
+msgstr "Reservas"
 
 #. module: resource_booking
 #: model:ir.ui.menu,name:resource_booking.menu_view_resource_calendar_leaves_search
