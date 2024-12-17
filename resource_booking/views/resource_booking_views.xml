@@ -18,7 +18,7 @@
                 <field name="name" invisible="True" />
                 <field name="partner_ids" widget="many2many_tags" />
                 <field name="type_id" />
-                <field name="combination_id" />
+                <field name="combination_id" filters="1" />
                 <field name="description" />
             </calendar>
         </field>
